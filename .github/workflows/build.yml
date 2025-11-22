@@ -7,26 +7,25 @@ on:
 
 jobs:
   build:
-    # We use Ubuntu 22.04 because it is the most stable for Android NDK builds
     runs-on: ubuntu-22.04
 
     steps:
       - uses: actions/checkout@v3
 
-      # 1. Setup Java 11 (Required for the version of Android SDK Buildozer uses)
+      # 1. Setup Java 11
       - name: Setup Java
         uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
           java-version: '11'
 
-      # 2. Setup Python 3.8 (The "Golden Standard" for Kivy builds - avoids Cython errors)
+      # 2. Setup Python 3.8
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.8'
 
-      # 3. Install System Dependencies
+      # 3. Install System Dependencies (Fixed for Ubuntu 22.04)
       - name: Install Dependencies
         run: |
           sudo apt-get update
@@ -49,6 +48,8 @@ jobs:
             libgstreamer1.0 \
             gstreamer1.0-plugins-base \
             gstreamer1.0-plugins-good \
+            libgstreamer1.0-dev \
+            libunwind-dev \
             libsqlite3-dev \
             sqlite3 \
             bzip2 \
@@ -74,23 +75,19 @@ jobs:
         run: |
           pip install --upgrade pip
           pip install --upgrade buildozer
-          # We pin Cython to <3.0 because newer versions break the build
           pip install "cython<3.0.0"
-          # Install your app dependencies here to ensure they are cached
+          # Install dependencies here to ensure cache
           pip install kivy kivymd pillow
 
-      # 5. Cleanup (Prevents some permission errors)
+      # 5. Cleanup
       - name: Cleanup
         run: |
-          # Remove existing bin directory if it exists to ensure clean build
           rm -rf bin
           mkdir bin
 
       # 6. Build APK
       - name: Build APK
         run: |
-          # The 'yes' command automatically accepts the Android SDK license agreement
-          # preventing the build from hanging and timing out.
           yes | buildozer android debug
 
       # 7. Upload APK
