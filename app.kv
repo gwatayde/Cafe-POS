@@ -1,0 +1,310 @@
+ScreenManager:
+    StartScreen:
+        name: 'start'
+    POSScreen:
+        name: 'pos'
+    InventoryScreen:
+        name: 'inventory'
+    ReceiptsScreen:
+        name: 'receipts'
+    AdminScreen:
+        name: 'admin'
+
+<StartScreen>:
+    MDBoxLayout:
+        orientation: 'vertical'
+        md_bg_color: app.theme_cls.bg_dark
+        padding: "50dp"
+        spacing: "30dp"
+
+        MDLabel:
+            text: "WELCOME TO CAFE POS"
+            halign: "center"
+            font_style: "H4"
+            theme_text_color: "Primary"
+
+        MDRaisedButton:
+            text: "START SHIFT"
+            font_size: "24sp"
+            size_hint: 0.6, 0.2
+            pos_hint: {"center_x": 0.5}
+            md_bg_color: 0, 0.7, 0, 1
+            on_release: root.start_shift()
+
+# --- NEW INVENTORY ROW ---
+<InventoryRow>:
+    orientation: 'horizontal'
+    size_hint_y: None
+    height: "50dp"
+    padding: "10dp"
+    spacing: "5dp"
+    # Add a separator line at the bottom
+    canvas.after:
+        Color:
+            rgba: 0.8, 0.8, 0.8, 1
+        Line:
+            points: [self.x, self.y, self.right, self.y]
+            width: 1
+
+    MDLabel:
+        text: root.name
+        size_hint_x: 0.5
+        shorten: True
+
+    MDLabel:
+        text: root.start_qty
+        size_hint_x: 0.25
+        halign: "center"
+        theme_text_color: "Secondary"
+
+    MDLabel:
+        text: root.current_qty
+        size_hint_x: 0.25
+        halign: "center"
+        bold: True
+
+<CategoryCard>:
+    orientation: "vertical"
+    size_hint: 1, None
+    height: "120dp"
+    padding: "20dp"
+    elevation: 4
+    radius: [15]
+    md_bg_color: app.theme_cls.primary_color
+    ripple_behavior: True
+
+    MDLabel:
+        text: root.category_name
+        halign: "center"
+        valign: "center"
+        bold: True
+        theme_text_color: "Custom"
+        text_color: 1, 1, 1, 1
+        font_style: "H5"
+
+<ProductCard>:
+    orientation: "vertical"
+    size_hint: None, None
+    size: "150dp", "250dp"
+    padding: 0
+    elevation: 3
+    radius: [12]
+    md_bg_color: app.theme_cls.bg_light
+    ripple_behavior: True
+
+    canvas.before:
+        PushMatrix
+        Rotate:
+            angle: root.angle
+            origin: self.center
+    canvas.after:
+        PopMatrix
+
+    FitImage:
+        source: root.image_source
+        radius: [12, 12, 0, 0]
+        size_hint_y: None
+        height: "180dp"
+        md_bg_color: 0.9, 0.9, 0.9, 1
+
+    MDBoxLayout:
+        orientation: "vertical"
+        size_hint_y: None
+        height: "70dp"
+        padding: "5dp"
+
+        MDLabel:
+            text: root.name
+            halign: "center"
+            bold: True
+            theme_text_color: "Primary"
+            font_style: "Subtitle2"
+            font_size: "13sp"
+
+        MDLabel:
+            text: "Select Size"
+            halign: "center"
+            theme_text_color: "Hint"
+            font_size: "11sp"
+
+<CartItem>:
+    size_hint_y: None
+    height: "40dp"
+    spacing: "10dp"
+
+    MDLabel:
+        text: root.name
+        size_hint_x: 0.5
+        shorten: True
+        font_size: "14sp"
+
+    MDLabel:
+        text: "P" + str(root.price)
+        size_hint_x: 0.3
+        halign: "right"
+
+    MDIconButton:
+        icon: "minus-circle"
+        theme_text_color: "Error"
+        on_release: root.remove_item()
+
+<POSScreen>:
+    MDBoxLayout:
+        orientation: 'vertical'
+
+        MDToolbar:
+            id: pos_toolbar
+            title: "Select Category"
+            right_action_items: [["receipt", lambda x: setattr(root.manager, 'current', 'receipts')], ["chart-box", lambda x: setattr(root.manager, 'current', 'inventory')], ["cog", lambda x: setattr(root.manager, 'current', 'admin')]]
+            elevation: 10
+
+        MDBoxLayout:
+            orientation: 'horizontal'
+
+            # LEFT: MENU AREA
+            MDBoxLayout:
+                orientation: 'vertical'
+                size_hint_x: 0.65
+                padding: "10dp"
+
+                ScrollView:
+                    do_scroll_x: False
+                    MDBoxLayout:
+                        id: menu_container
+                        orientation: 'vertical'
+                        adaptive_height: True
+                        padding: "10dp"
+
+            # RIGHT: CART AREA
+            MDCard:
+                orientation: 'vertical'
+                size_hint_x: 0.35
+                padding: "10dp"
+                elevation: 4
+
+                MDLabel:
+                    text: "Current Order"
+                    font_style: "H6"
+                    halign: "center"
+                    size_hint_y: None
+                    height: "50dp"
+
+                ScrollView:
+                    MDBoxLayout:
+                        id: cart_box
+                        orientation: 'vertical'
+                        adaptive_height: True
+                        spacing: "5dp"
+
+                MDBoxLayout:
+                    size_hint_y: None
+                    height: "50dp"
+                    padding: "5dp"
+
+                    MDLabel:
+                        text: "Total:"
+                        bold: True
+
+                    MDLabel:
+                        text: "P" + str(app.cart_total)
+                        halign: "right"
+                        bold: True
+                        font_style: "H5"
+
+                MDRaisedButton:
+                    text: "CHECKOUT"
+                    size_hint_x: 1
+                    height: "60dp"
+                    font_size: "20sp"
+                    on_release: app.checkout()
+
+<InventoryScreen>:
+    MDBoxLayout:
+        orientation: 'vertical'
+
+        MDToolbar:
+            title: "Inventory"
+            left_action_items: [["arrow-left", lambda x: setattr(root.manager, 'current', 'pos')]]
+            elevation: 10
+
+        # HEADER ROW
+        MDBoxLayout:
+            size_hint_y: None
+            height: "40dp"
+            padding: "10dp"
+            spacing: "5dp"
+            md_bg_color: 0.9, 0.9, 0.9, 1
+
+            MDLabel:
+                text: "ITEM"
+                bold: True
+                size_hint_x: 0.5
+
+            MDLabel:
+                text: "START"
+                bold: True
+                halign: "center"
+                size_hint_x: 0.25
+
+            MDLabel:
+                text: "END"
+                bold: True
+                halign: "center"
+                size_hint_x: 0.25
+
+        ScrollView:
+            MDBoxLayout:
+                id: inventory_container
+                orientation: 'vertical'
+                adaptive_height: True
+
+<ReceiptsScreen>:
+    MDBoxLayout:
+        orientation: 'vertical'
+
+        MDToolbar:
+            title: "Sales History"
+            left_action_items: [["arrow-left", lambda x: setattr(root.manager, 'current', 'pos')]]
+            elevation: 10
+
+        ScrollView:
+            MDList:
+                id: receipt_list
+
+<AdminScreen>:
+    MDBoxLayout:
+        orientation: 'vertical'
+
+        MDToolbar:
+            title: "Price Editor (Admin)"
+            left_action_items: [["arrow-left", lambda x: setattr(root.manager, 'current', 'pos')]]
+            elevation: 10
+
+        MDBoxLayout:
+            orientation: 'vertical'
+            padding: "20dp"
+            spacing: "20dp"
+
+            MDRaisedButton:
+                text: "END SHIFT (EXPORT CSV REPORT)"
+                size_hint_x: 1
+                height: "50dp"
+                md_bg_color: 0, 0, 0.7, 1 # Blue
+                on_release: app.end_shift()
+
+            MDRaisedButton:
+                text: "TOGGLE EDIT MODE (UPLOAD IMAGES)"
+                size_hint_x: 1
+                height: "50dp"
+                md_bg_color: 1, 0, 0, 1
+                on_release: app.toggle_edit_mode()
+
+            MDLabel:
+                text: "Tap a product below to edit price:"
+                halign: "center"
+                size_hint_y: None
+                height: "30dp"
+
+            ScrollView:
+                MDList:
+                    id: admin_list
