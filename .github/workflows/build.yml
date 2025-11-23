@@ -1,0 +1,90 @@
+name: Build APK
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    # Use latest Ubuntu to match latest Android tools
+    runs-on: ubuntu-24.04
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      # Install dependencies required for Kivy
+      - name: Install System Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential \
+            git \
+            ffmpeg \
+            libsdl2-dev \
+            libsdl2-image-dev \
+            libsdl2-mixer-dev \
+            libsdl2-ttf-dev \
+            libportmidi-dev \
+            libswscale-dev \
+            libavformat-dev \
+            libavcodec-dev \
+            zlib1g-dev \
+            libsqlite3-dev \
+            sqlite3 \
+            bzip2 \
+            libbz2-dev \
+            libssl-dev \
+            openssl \
+            libgdbm-dev \
+            libgdbm-compat-dev \
+            liblzma-dev \
+            libreadline-dev \
+            libncursesw5-dev \
+            libffi-dev \
+            uuid-dev \
+            libopenjp2-7 \
+            autoconf \
+            libtool \
+            libltdl-dev \
+            zip \
+            unzip
+
+      - name: Install Buildozer & Kivy
+        run: |
+          pip install --upgrade pip
+          pip install --upgrade buildozer
+          # Install Cython < 3.0 to prevent build errors
+          pip install "cython<3.0.0"
+          pip install kivy kivymd pillow
+
+      - name: Cleanup
+        run: |
+          rm -rf bin
+          mkdir bin
+
+      # Build APK with specific flags to accept licenses without 'yes' pipe if possible
+      - name: Build APK
+        env:
+          # Force Buildozer to accept license
+          ACCEPT_SDK_LICENSE: yes
+        run: |
+          # We use the yes pipe again, but with the new environment it should hold
+          yes | buildozer android debug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: package
+          path: bin/*.apk
