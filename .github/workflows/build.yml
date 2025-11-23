@@ -7,36 +7,29 @@ on:
 
 jobs:
   build:
-    # USE OLDER LINUX TO FIX DEPENDENCY ERRORS
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
 
     steps:
       - uses: actions/checkout@v3
 
-      # 1. Setup Java 11
-      - name: Setup Java
+      - name: Setup Java 11
         uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
           java-version: '11'
 
-      # 2. Setup Python 3.8 (Best for Buildozer)
-      - name: Setup Python
+      - name: Setup Python 3.8
         uses: actions/setup-python@v4
         with:
           python-version: '3.8'
 
-      # 3. Install Dependencies (Simplified for 20.04)
+      # SLIM INSTALL: Removed gstreamer/ffmpeg (Video tools) to fix errors
       - name: Install Dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y \
-            python3-pip \
             build-essential \
             git \
-            python3 \
-            python3-dev \
-            ffmpeg \
             libsdl2-dev \
             libsdl2-image-dev \
             libsdl2-mixer-dev \
@@ -46,9 +39,6 @@ jobs:
             libavformat-dev \
             libavcodec-dev \
             zlib1g-dev \
-            libgstreamer1.0 \
-            gstreamer1.0-plugins-base \
-            gstreamer1.0-plugins-good \
             libsqlite3-dev \
             sqlite3 \
             bzip2 \
@@ -59,7 +49,7 @@ jobs:
             libgdbm-compat-dev \
             liblzma-dev \
             libreadline-dev \
-            libncurses5-dev \
+            libncursesw5-dev \
             libffi-dev \
             uuid-dev \
             libopenjp2-7 \
@@ -69,26 +59,22 @@ jobs:
             zip \
             unzip
 
-      # 4. Install Buildozer
-      - name: Install Buildozer & Kivy
+      - name: Install Buildozer
         run: |
           pip install --upgrade pip
           pip install --upgrade buildozer
           pip install "cython<3.0.0"
           pip install kivy kivymd pillow
 
-      # 5. Cleanup
       - name: Cleanup
         run: |
           rm -rf bin
           mkdir bin
 
-      # 6. Build APK
       - name: Build APK
         run: |
           yes | buildozer android debug
 
-      # 7. Upload APK
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
