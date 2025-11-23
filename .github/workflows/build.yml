@@ -7,25 +7,24 @@ on:
 
 jobs:
   build:
-    # Use latest Ubuntu to match latest Android tools
     runs-on: ubuntu-24.04
 
     steps:
       - uses: actions/checkout@v3
 
-      - name: Setup Java
+      - name: Setup Java 17
         uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Setup Python
+      - name: Setup Python 3.10
         uses: actions/setup-python@v4
         with:
           python-version: '3.10'
 
-      # Install dependencies required for Kivy
-      - name: Install System Dependencies
+      # Install System Dependencies
+      - name: Install Dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y \
@@ -61,28 +60,30 @@ jobs:
             zip \
             unzip
 
-      - name: Install Buildozer & Kivy
+      # Install Buildozer
+      - name: Install Buildozer
         run: |
           pip install --upgrade pip
           pip install --upgrade buildozer
-          # Install Cython < 3.0 to prevent build errors
           pip install "cython<3.0.0"
           pip install kivy kivymd pillow
 
-      - name: Cleanup
+      # CRITICAL FIX: Pre-create the license file so Buildozer never asks
+      - name: Accept Android Licenses Manually
         run: |
-          rm -rf bin
-          mkdir bin
+          mkdir -p ~/.android
+          touch ~/.android/repositories.cfg
+          mkdir -p ~/.buildozer/android/platform/android-sdk/licenses
+          echo "8933bad161af4178b1185d1a37fbf41ea5269c55" > ~/.buildozer/android/platform/android-sdk/licenses/android-sdk-license
+          echo "d56f5187479451eabf01fb78af6dfcb131a6481e" >> ~/.buildozer/android/platform/android-sdk/licenses/android-sdk-license
+          echo "24333f8a63b6825ea9c5514f83c2829b004d1fee" >> ~/.buildozer/android/platform/android-sdk/licenses/android-sdk-license
 
-      # Build APK with specific flags to accept licenses without 'yes' pipe if possible
+      # Build APK (No 'yes' pipe needed anymore)
       - name: Build APK
-        env:
-          # Force Buildozer to accept license
-          ACCEPT_SDK_LICENSE: yes
         run: |
-          # We use the yes pipe again, but with the new environment it should hold
-          yes | buildozer android debug
+          buildozer android debug
 
+      # Upload APK
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
