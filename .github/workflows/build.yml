@@ -12,64 +12,50 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      # Use Python 3.9 (Best for Buildozer + KivyMD)
+      - name: Setup Python 3.9
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      # Setup Java (required by Buildozer)
       - name: Setup Java 17
         uses: actions/setup-java@v3
         with:
-          distribution: 'temurin'
+          distribution: temurin
           java-version: '17'
 
-      - name: Setup Python 3.10
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.10'
-
-      # Install System Dependencies
-      - name: Install Dependencies
+      # Install required Linux packages
+      - name: Install System Dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y \
-            build-essential \
-            git \
-            ffmpeg \
-            libsdl2-dev \
-            libsdl2-image-dev \
-            libsdl2-mixer-dev \
-            libsdl2-ttf-dev \
-            libportmidi-dev \
-            libswscale-dev \
-            libavformat-dev \
-            libavcodec-dev \
-            zlib1g-dev \
-            libsqlite3-dev \
-            sqlite3 \
-            bzip2 \
-            libbz2-dev \
-            libssl-dev \
-            openssl \
-            libgdbm-dev \
-            libgdbm-compat-dev \
-            liblzma-dev \
-            libreadline-dev \
-            libncursesw5-dev \
-            libffi-dev \
-            uuid-dev \
-            libopenjp2-7 \
-            autoconf \
-            libtool \
-            libltdl-dev \
-            zip \
-            unzip
+            build-essential git zip unzip \
+            libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev \
+            libportmidi-dev libswscale-dev libavformat-dev libavcodec-dev \
+            zlib1g-dev libsqlite3-dev sqlite3 bzip2 libbz2-dev libssl-dev \
+            libgdbm-dev liblzma-dev libreadline-dev libncursesw5-dev \
+            libffi-dev uuid-dev libopenjp2-7 libtiff-dev autoconf libtool \
+            libltdl-dev
 
-      # Install Buildozer
-      - name: Install Buildozer
+      # Cache pip packages
+      - name: Cache pip
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: pip-${{ runner.os }}-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: pip-${{ runner.os }}-
+
+      # Install Buildozer + Python deps
+      - name: Install Buildozer & Dependencies
         run: |
           pip install --upgrade pip
-          pip install --upgrade buildozer
-          pip install "cython<3.0.0"
-          pip install kivy kivymd pillow
+          pip install buildozer
+          pip install "cython<3.0"
+          pip install kivy==2.2.1 kivymd pillow
 
-      # CRITICAL FIX: Pre-create the license file so Buildozer never asks
-      - name: Accept Android Licenses Manually
+      # Fix Android Licenses
+      - name: Accept Android Licenses
         run: |
           mkdir -p ~/.android
           touch ~/.android/repositories.cfg
@@ -78,14 +64,22 @@ jobs:
           echo "d56f5187479451eabf01fb78af6dfcb131a6481e" >> ~/.buildozer/android/platform/android-sdk/licenses/android-sdk-license
           echo "24333f8a63b6825ea9c5514f83c2829b004d1fee" >> ~/.buildozer/android/platform/android-sdk/licenses/android-sdk-license
 
-      # Build APK (No 'yes' pipe needed anymore)
+      # Cache Buildozer global directory (~/.buildozer)
+      - name: Cache Buildozer
+        uses: actions/cache@v3
+        with:
+          path: ~/.buildozer
+          key: buildozer-${{ runner.os }}
+          restore-keys: buildozer-${{ runner.os }}
+
+      # Build APK
       - name: Build APK
         run: |
           buildozer android debug
 
-      # Upload APK
+      # Upload final APK
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: package
+          name: cafe_pos_apk
           path: bin/*.apk
