@@ -70,13 +70,13 @@ ScreenManager:
         md_bg_color: app.theme_cls.bg_dark
         padding: "50dp"
         spacing: "30dp"
-
+        
         MDLabel:
             text: "WELCOME TO CAFE POS"
             halign: "center"
             font_style: "H4"
             theme_text_color: "Primary"
-
+        
         MDRaisedButton:
             text: "START SHIFT"
             font_size: "24sp"
@@ -102,13 +102,13 @@ ScreenManager:
         text: root.name
         size_hint_x: 0.5
         shorten: True
-
+    
     MDLabel:
         text: root.start_qty
         size_hint_x: 0.25
         halign: "center"
         theme_text_color: "Secondary"
-
+    
     MDLabel:
         text: root.current_qty
         size_hint_x: 0.25
@@ -143,7 +143,7 @@ ScreenManager:
     radius: [12]
     md_bg_color: app.theme_cls.bg_light
     ripple_behavior: True
-
+    
     canvas.before:
         PushMatrix
         Rotate:
@@ -164,7 +164,7 @@ ScreenManager:
         size_hint_y: None
         height: "70dp"
         padding: "5dp"
-
+        
         MDLabel:
             text: root.name
             halign: "center"
@@ -172,7 +172,7 @@ ScreenManager:
             theme_text_color: "Primary"
             font_style: "Subtitle2"
             font_size: "13sp"
-
+        
         MDLabel:
             text: "Select Size"
             halign: "center"
@@ -183,18 +183,18 @@ ScreenManager:
     size_hint_y: None
     height: "40dp"
     spacing: "10dp"
-
+    
     MDLabel:
         text: root.name
         size_hint_x: 0.5
         shorten: True
         font_size: "14sp"
-
+    
     MDLabel:
         text: "P" + str(root.price)
         size_hint_x: 0.3
         halign: "right"
-
+    
     MDIconButton:
         icon: "minus-circle"
         theme_text_color: "Error"
@@ -233,30 +233,30 @@ ScreenManager:
                 size_hint_x: 0.35
                 padding: "10dp"
                 elevation: 4
-
+                
                 MDLabel:
                     text: "Current Order"
                     font_style: "H6"
                     halign: "center"
                     size_hint_y: None
                     height: "50dp"
-
+                
                 ScrollView:
                     MDBoxLayout:
                         id: cart_box
                         orientation: 'vertical'
                         adaptive_height: True
                         spacing: "5dp"
-
+                
                 MDBoxLayout:
                     size_hint_y: None
                     height: "50dp"
                     padding: "5dp"
-
+                    
                     MDLabel:
                         text: "Total:"
                         bold: True
-
+                    
                     MDLabel:
                         text: "P" + str(app.cart_total)
                         halign: "right"
@@ -273,12 +273,12 @@ ScreenManager:
 <InventoryScreen>:
     MDBoxLayout:
         orientation: 'vertical'
-
+        
         MDTopAppBar:
             title: "Inventory"
             left_action_items: [["arrow-left", lambda x: setattr(root.manager, 'current', 'pos')]]
             elevation: 10
-
+        
         # HEADER ROW
         MDBoxLayout:
             size_hint_y: None
@@ -286,18 +286,18 @@ ScreenManager:
             padding: "10dp"
             spacing: "5dp"
             md_bg_color: 0.9, 0.9, 0.9, 1
-
+            
             MDLabel:
                 text: "ITEM"
                 bold: True
                 size_hint_x: 0.5
-
+            
             MDLabel:
                 text: "START"
                 bold: True
                 halign: "center"
                 size_hint_x: 0.25
-
+            
             MDLabel:
                 text: "END"
                 bold: True
@@ -313,12 +313,12 @@ ScreenManager:
 <ReceiptsScreen>:
     MDBoxLayout:
         orientation: 'vertical'
-
+        
         MDTopAppBar:
             title: "Sales History"
             left_action_items: [["arrow-left", lambda x: setattr(root.manager, 'current', 'pos')]]
             elevation: 10
-
+        
         ScrollView:
             MDList:
                 id: receipt_list
@@ -326,17 +326,17 @@ ScreenManager:
 <AdminScreen>:
     MDBoxLayout:
         orientation: 'vertical'
-
+        
         MDTopAppBar:
             title: "Price Editor (Admin)"
             left_action_items: [["arrow-left", lambda x: setattr(root.manager, 'current', 'pos')]]
             elevation: 10
-
+        
         MDBoxLayout:
             orientation: 'vertical'
             padding: "20dp"
             spacing: "20dp"
-
+            
             MDRaisedButton:
                 text: "END SHIFT (EXPORT CSV REPORT)"
                 size_hint_x: 1
@@ -506,7 +506,6 @@ RECIPES = {
     "Oreo Ube 22oz": {"Milk": 250, "22oz Cups Iced": 1},
 }
 
-
 # --- CLASSES ---
 
 class StartScreen(MDScreen):
@@ -514,59 +513,46 @@ class StartScreen(MDScreen):
         app = MDApp.get_running_app()
         app.start_shift()
 
-
 class CategoryCard(MDCard):
     category_name = StringProperty()
-
     def on_release(self):
         MDApp.get_running_app().load_products_for_category(self.category_name)
-
 
 class ProductCard(MDCard):
     name = StringProperty()
     sizes = DictProperty()
     image_source = StringProperty("placeholder.png")
     angle = NumericProperty(0)
-
     def on_release(self):
         app = MDApp.get_running_app()
-        if app.is_edit_mode:
-            app.open_image_selector(self.name)
-        else:
-            app.show_size_selection(self.name, self.sizes)
-
+        if app.is_edit_mode: app.open_image_selector(self.name)
+        else: app.show_size_selection(self.name, self.sizes)
     def start_shake(self):
         anim = Animation(angle=2, duration=0.1) + Animation(angle=-2, duration=0.1)
         anim.repeat = True
         anim.start(self)
-
     def stop_shake(self):
         Animation.cancel_all(self)
         self.angle = 0
 
-
 class CartItem(BoxLayout):
     name = StringProperty()
     price = NumericProperty()
-
     def remove_item(self):
         MDApp.get_running_app().remove_from_cart(self)
 
-
 class POSScreen(MDScreen): pass
-
 
 class InventoryRow(ButtonBehavior, BoxLayout):
     name = StringProperty()
     start_qty = StringProperty()
     current_qty = StringProperty()
-
     def on_release(self):
         app = MDApp.get_running_app()
         raw_start = app.shift_start_data.get(self.name, 0)
         unit_size = UNIT_SIZES.get(self.name, 1)
         display_start = raw_start / unit_size
-
+        
         content = BoxLayout(orientation='vertical', spacing="10dp", padding="10dp", size_hint_y=None, height="100dp")
         qty_field = MDTextField(text=f"{display_start:.2f}", hint_text="Actual Quantity (Units)", input_type="number")
         content.add_widget(qty_field)
@@ -578,23 +564,19 @@ class InventoryRow(ButtonBehavior, BoxLayout):
                 app.inventory_data[self.name] = new_qty_raw
                 app.shift_start_data[self.name] = new_qty_raw
                 app.save_inventory()
-                with open(SHIFT_START_FILE, 'w') as f:
-                    json.dump(app.shift_start_data, f, indent=4)
+                with open(SHIFT_START_FILE, 'w') as f: json.dump(app.shift_start_data, f, indent=4)
                 toast(f"Stock Reset: {self.name}")
                 dialog.dismiss()
                 app.root.get_screen('inventory').load_inventory()
-            except ValueError:
-                toast("Please enter valid numbers")
+            except ValueError: toast("Please enter valid numbers")
 
         dialog = MDDialog(title=f"Count Stock: {self.name}", type="custom", content_cls=content,
                           buttons=[MDFlatButton(text="CANCEL", on_release=lambda x: dialog.dismiss()),
                                    MDRaisedButton(text="CONFIRM", on_release=save_changes)])
         dialog.open()
 
-
 class InventoryScreen(MDScreen):
     def on_enter(self): self.load_inventory()
-
     def load_inventory(self):
         app = MDApp.get_running_app()
         list_box = self.ids.inventory_container
@@ -608,10 +590,8 @@ class InventoryScreen(MDScreen):
             start_unit = raw_start / unit_size
             list_box.add_widget(InventoryRow(name=item, start_qty=f"{start_unit:.2f}", current_qty=f"{qty_unit:.2f}"))
 
-
 class ReceiptsScreen(MDScreen):
     def on_enter(self): self.load_receipts()
-
     def load_receipts(self):
         app = MDApp.get_running_app()
         self.ids.receipt_list.clear_widgets()
@@ -622,11 +602,8 @@ class ReceiptsScreen(MDScreen):
             li.add_widget(IconLeftWidget(icon="receipt"))
             self.ids.receipt_list.add_widget(li)
 
-
 class AdminScreen(MDScreen):
-    def on_enter(self):
-        self.load_prices()
-
+    def on_enter(self): self.load_prices()
     def load_prices(self):
         app = MDApp.get_running_app()
         self.ids.admin_list.clear_widgets()
@@ -638,30 +615,25 @@ class AdminScreen(MDScreen):
                     icon.bind(on_release=partial(self.edit_price, name, size, category, price))
                     li.add_widget(icon)
                     self.ids.admin_list.add_widget(li)
-
     def edit_price(self, product_name, size, category, old_price, instance):
         app = MDApp.get_running_app()
         field = MDTextField(text=str(old_price), hint_text="Enter new price")
-
         def save(x):
             try:
                 app.update_price(category, product_name, size, float(field.text))
                 dialog.dismiss()
                 self.load_prices()
-            except:
-                toast("Invalid")
-
+            except: toast("Invalid")
         dialog = MDDialog(title=f"Edit: {product_name} {size}", type="custom", content_cls=field,
                           buttons=[MDFlatButton(text="CANCEL", on_release=lambda x: dialog.dismiss()),
                                    MDRaisedButton(text="SAVE", on_release=save)])
         dialog.open()
 
-
 # --- APP ---
 class CafeApp(MDApp):
     cart_total = NumericProperty(0)
     inventory_data = {}
-    shift_start_data = {}
+    shift_start_data = {} 
     product_data = {}
     receipts_data = []
     image_map = {}
@@ -691,7 +663,7 @@ class CafeApp(MDApp):
 
     def end_shift(self):
         if not os.path.exists(SHIFT_START_FILE): return toast("No shift running")
-
+        
         # --- CONFIRMATION DIALOG ---
         self.dialog_ref = MDDialog(
             title="End Shift?",
@@ -705,7 +677,7 @@ class CafeApp(MDApp):
 
     def finalize_end_shift(self):
         self.dialog_ref.dismiss()
-
+        
         timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M")
         filename = f"Report_{timestamp}.csv"
         try:
@@ -716,8 +688,7 @@ class CafeApp(MDApp):
                 for item, raw_end in self.inventory_data.items():
                     raw_start = self.shift_start_data.get(item, 0)
                     unit_size = UNIT_SIZES.get(item, 1)
-                    writer.writerow([item, f"{raw_start / unit_size:.2f}", f"{raw_end / unit_size:.2f}",
-                                     f"{(raw_end - raw_start) / unit_size:.2f}"])
+                    writer.writerow([item, f"{raw_start/unit_size:.2f}", f"{raw_end/unit_size:.2f}", f"{(raw_end-raw_start)/unit_size:.2f}"])
                 writer.writerow([])
                 writer.writerow(["SALES LOG"])
                 for r in self.receipts_data:
@@ -728,18 +699,16 @@ class CafeApp(MDApp):
             self.save_receipts()
             if os.path.exists(SHIFT_START_FILE): os.remove(SHIFT_START_FILE)
             self.root.current = 'start'
-        except Exception as e:
-            toast(f"Error: {e}")
+        except Exception as e: toast(f"Error: {e}")
 
     def toggle_edit_mode(self):
         self.is_edit_mode = not self.is_edit_mode
         toast(f"Edit Mode: {self.is_edit_mode}")
         try:
             grid = self.root.get_screen('pos').ids.menu_container.children[0]
-            for w in grid.children:
+            for w in grid.children: 
                 if isinstance(w, ProductCard): w.start_shake() if self.is_edit_mode else w.stop_shake()
-        except:
-            pass
+        except: pass
 
     def open_image_selector(self, product_name):
         content = BoxLayout(orientation='vertical')
@@ -748,12 +717,10 @@ class CafeApp(MDApp):
         btn = MDRaisedButton(text="SELECT", size_hint_y=None, height="50dp")
         content.add_widget(btn)
         popup = Popup(title=f"Image for {product_name}", content=content, size_hint=(0.9, 0.9))
-
         def select(x):
             if file_chooser.selection:
                 self.save_product_image(product_name, file_chooser.selection[0])
                 popup.dismiss()
-
         btn.bind(on_release=select)
         popup.open()
 
@@ -765,14 +732,12 @@ class CafeApp(MDApp):
                 with PILImage.open(original_path) as img:
                     img.thumbnail((300, 400))
                     img.save(new_path)
-            else:
-                shutil.copy(original_path, new_path)
+            else: shutil.copy(original_path, new_path)
             self.image_map[product_name] = new_path
             self.save_images()
             toast("Saved!")
-            self.load_products_for_category([k for k, v in self.product_data.items() if product_name in v][0])
-        except:
-            toast("Error saving image")
+            self.load_products_for_category([k for k,v in self.product_data.items() if product_name in v][0])
+        except: toast("Error saving image")
 
     def load_category_menu(self):
         self.current_view = "categories"
@@ -799,13 +764,10 @@ class CafeApp(MDApp):
         screen.ids.menu_container.add_widget(grid)
 
     def show_size_selection(self, product_name, sizes_dict):
-        box = MDBoxLayout(orientation="vertical", adaptive_height=True, spacing="10dp", padding=[0, "10dp", 0, 0])
+        box = MDBoxLayout(orientation="vertical", adaptive_height=True, spacing="10dp", padding=[0,"10dp",0,0])
         dialog = MDDialog(title=f"{product_name}", type="custom", content_cls=box)
         for size, price in sizes_dict.items():
-            btn = MDRectangleFlatButton(text=f"{size} - P{price}", size_hint_x=1,
-                                        on_release=lambda x, s=size, p=price: (dialog.dismiss(),
-                                                                               self.add_to_cart(f"{product_name} {s}",
-                                                                                                p)))
+            btn = MDRectangleFlatButton(text=f"{size} - P{price}", size_hint_x=1, on_release=lambda x, s=size, p=price: (dialog.dismiss(), self.add_to_cart(f"{product_name} {s}", p)))
             box.add_widget(btn)
         dialog.open()
 
@@ -833,32 +795,28 @@ class CafeApp(MDApp):
                 for ing, amt in RECIPES[item['name']].items():
                     self.inventory_data[ing] = self.inventory_data.get(ing, 0) - amt
         self.save_inventory()
-        self.receipts_data.append(
-            {"id": str(int(time.time())), "date": datetime.now().strftime("%Y-%m-%d %H:%M"), "total": self.cart_total,
-             "items": self.cart_items})
+        self.receipts_data.append({"id": str(int(time.time())), "date": datetime.now().strftime("%Y-%m-%d %H:%M"), "total": self.cart_total, "items": self.cart_items})
         self.save_receipts()
         self.cart_items = []
         self.update_cart_ui()
         toast("Done!")
 
     def load_data(self):
-        if not os.path.exists(INVENTORY_FILE):
+        if not os.path.exists(INVENTORY_FILE): 
             self.inventory_data = DEFAULT_INVENTORY.copy()
             self.save_inventory()
-        else:
-            with open(INVENTORY_FILE) as f:
-                self.inventory_data = json.load(f)
-
+        else: 
+            with open(INVENTORY_FILE) as f: self.inventory_data = json.load(f)
+        
         if not os.path.exists(PRODUCTS_FILE):
             self.product_data = DEFAULT_PRODUCTS.copy()
             self.save_products()
         else:
-            with open(PRODUCTS_FILE) as f:
-                self.product_data = json.load(f)
+            with open(PRODUCTS_FILE) as f: self.product_data = json.load(f)
 
         if os.path.exists(RECEIPTS_FILE):
             with open(RECEIPTS_FILE) as f: self.receipts_data = json.load(f)
-
+        
         if os.path.exists(IMAGES_FILE):
             with open(IMAGES_FILE) as f: self.image_map = json.load(f)
 
@@ -867,21 +825,16 @@ class CafeApp(MDApp):
 
     def save_inventory(self):
         with open(INVENTORY_FILE, 'w') as f: json.dump(self.inventory_data, f, indent=4)
-
     def save_products(self):
         with open(PRODUCTS_FILE, 'w') as f: json.dump(self.product_data, f, indent=4)
-
     def save_receipts(self):
         with open(RECEIPTS_FILE, 'w') as f: json.dump(self.receipts_data, f, indent=4)
-
     def save_images(self):
         with open(IMAGES_FILE, 'w') as f: json.dump(self.image_map, f, indent=4)
-
     def update_price(self, cat, name, size, price):
         self.product_data[cat][name][size] = price
         self.save_products()
         if self.current_view == "products": self.load_products_for_category(cat)
-
 
 if __name__ == '__main__':
     CafeApp().run()
